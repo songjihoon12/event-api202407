@@ -1,5 +1,7 @@
 package com.study.event.api.event.controller;
 
+import com.study.event.api.auth.TokenProvider;
+import com.study.event.api.auth.TokenProvider.TokenUserInfo;
 import com.study.event.api.event.dto.request.EventUserSaveDto;
 import com.study.event.api.event.dto.request.LoginRequestDto;
 import com.study.event.api.event.dto.response.LoginResponseDto;
@@ -8,8 +10,11 @@ import com.study.event.api.exception.LoginFailException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.sql.SQLException;
+import java.util.NoSuchElementException;
 
 
 @RestController
@@ -66,6 +71,20 @@ public class EventUserController {
             return ResponseEntity.status(422).body(errorMessage);
         }
 
+    }
+
+    @PutMapping("/promote")
+    public ResponseEntity<?> promote(
+            @AuthenticationPrincipal TokenUserInfo userInfo
+            ){
+
+        try {
+            LoginResponseDto dto = eventUserService.promoteToPremium(userInfo.getUserId());
+            return ResponseEntity.ok().body(dto);
+        } catch (NoSuchElementException e) {
+            log.warn(e.getMessage());
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
 
